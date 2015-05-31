@@ -19,9 +19,10 @@
 #include "../public/fpdf_text.h"
 #include "../public/fpdfview.h"
 #include "image_diff_png.h"
+#ifdef JS_SUPPORT
 #include "v8/include/libplatform/libplatform.h"
 #include "v8/include/v8.h"
-
+#endif
 #ifdef _WIN32
 #define snprintf _snprintf
 #define PATH_SEPARATOR '\\'
@@ -364,6 +365,7 @@ bool ParseCommandLine(const std::vector<std::string>& args,
       options->output_format = OUTPUT_BMP;
     }
 #endif  // _WIN32
+#ifdef JS_SUPPORT
 #ifdef V8_USE_EXTERNAL_STARTUP_DATA
     else if (cur_arg.size() > 10 && cur_arg.compare(0, 10, "--bin-dir=") == 0) {
       if (!options->bin_directory.empty()) {
@@ -373,6 +375,7 @@ bool ParseCommandLine(const std::vector<std::string>& args,
       options->bin_directory = cur_arg.substr(10);
     }
 #endif  // V8_USE_EXTERNAL_STARTUP_DATA
+#endif
     else if (cur_arg.size() > 8 && cur_arg.compare(0, 8, "--scale=") == 0) {
       if (!options->scale_factor_as_string.empty()) {
         fprintf(stderr, "Duplicate --scale argument\n");
@@ -480,8 +483,9 @@ void RenderPdf(const std::string& name, const char* pBuf, size_t len,
   for (int i = 0; i < page_count; ++i) {
     (void) FPDFAvail_IsPageAvail(pdf_avail, i, &hints);
   }
-
+#ifdef JS_SUPPORT
   FORM_DoDocumentJSAction(form);
+#endif
   FORM_DoDocumentOpenAction(form);
 
   int rendered_pages = 0;
@@ -560,7 +564,9 @@ void RenderPdf(const std::string& name, const char* pBuf, size_t len,
 
 static const char usage_string[] =
     "Usage: pdfium_test [OPTION] [FILE]...\n"
+#ifdef JS_SUPPORT
     "  --bin-dir=<path> - override path to v8 external data\n"
+#endif
     "  --scale=<number> - scale output size by number (e.g. 0.5)\n"
 #ifdef _WIN32
     "  --bmp - write page images <pdf-name>.<page-number>.bmp\n"
@@ -577,7 +583,7 @@ int main(int argc, const char* argv[]) {
     fprintf(stderr, "%s", usage_string);
     return 1;
   }
-
+#ifdef JS_SUPPORT
   v8::V8::InitializeICU();
   v8::Platform* platform = v8::platform::CreateDefaultPlatform();
   v8::V8::InitializePlatform(platform);
@@ -596,7 +602,7 @@ int main(int argc, const char* argv[]) {
   v8::V8::SetNativesDataBlob(&natives);
   v8::V8::SetSnapshotDataBlob(&snapshot);
 #endif  // V8_USE_EXTERNAL_STARTUP_DATA
-
+#endif
   FPDF_InitLibrary();
 
   UNSUPPORT_INFO unsuppored_info;
@@ -618,8 +624,10 @@ int main(int argc, const char* argv[]) {
   }
 
   FPDF_DestroyLibrary();
+#ifdef JS_SUPPORT
   v8::V8::ShutdownPlatform();
   delete platform;
+#endif
 
   return 0;
 }

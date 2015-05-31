@@ -198,6 +198,9 @@
       'cflags!': [
         '-fvisibility=hidden',
        ],
+      'dependencies': [
+        'fdrm'
+      ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fpdfapi/fpdfapi.h',

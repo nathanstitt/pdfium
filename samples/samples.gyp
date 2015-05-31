@@ -46,7 +46,11 @@
     },
     {
       'target_name': 'fx_lpng',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
+      'cflags': [ '-fPIC', ],
       'dependencies': [
         '../pdfium.gyp:fxcodec',
       ],

@@ -42,7 +42,10 @@
   'targets': [
     {
       'target_name': 'pdfium',
-      'type': 'static_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
+      'type': 'shared_library',
       'dependencies': [
         'third_party/third_party.gyp:bigint',
         'third_party/third_party.gyp:pdfium_base',
@@ -55,8 +58,6 @@
         'fxcrt',
         'fxedit',
         'fxge',
-        'javascript',
-        'jsapi',
         'pdfwindow',
       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
@@ -144,7 +145,10 @@
     },
     {
       'target_name': 'fdrm',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fdrm/fx_crypt.h',
@@ -155,7 +159,10 @@
     },
     {
       'target_name': 'fpdfdoc',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fpdfdoc/fpdf_ap.h',
@@ -184,7 +191,10 @@
     },
     {
       'target_name': 'fpdfapi',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fpdfapi/fpdfapi.h',
@@ -305,7 +315,10 @@
     },
     {
       'target_name': 'fpdftext',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fpdftext/fpdf_text.h',
@@ -320,7 +333,10 @@
     },
     {
       'target_name': 'fxcodec',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'include_dirs': [
       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
@@ -501,7 +517,10 @@
     },
     {
       'target_name': 'fxcrt',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fxcrt/fx_arb.h',
@@ -547,7 +566,10 @@
     },
     {
       'target_name': 'fxge',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'core/include/fxge/fpf.h',
@@ -659,7 +681,10 @@
     },
     {
       'target_name': 'fxedit',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'fpdfsdk/include/fxedit/fx_edit.h',
@@ -675,7 +700,10 @@
     },
     {
       'target_name': 'pdfwindow',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'fpdfsdk/include/pdfwindow/IPDFWindow.h',
@@ -717,85 +745,11 @@
       ],
     },
     {
-      'target_name': 'javascript',
-      'type': 'static_library',
-      'include_dirs': [
-        '<(DEPTH)/v8',
-        '<(DEPTH)/v8/include',
-      ],
-      'dependencies': [
-        '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
-      ],
-      'export_dependent_settings': [
-        '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
-      ],
-      'ldflags': [ '-L<(PRODUCT_DIR)',],
-      'sources': [
-        'fpdfsdk/include/javascript/app.h',
-        'fpdfsdk/include/javascript/color.h',
-        'fpdfsdk/include/javascript/console.h',
-        'fpdfsdk/include/javascript/Consts.h',
-        'fpdfsdk/include/javascript/Document.h',
-        'fpdfsdk/include/javascript/event.h',
-        'fpdfsdk/include/javascript/Field.h',
-        'fpdfsdk/include/javascript/global.h',
-        'fpdfsdk/include/javascript/Icon.h',
-        'fpdfsdk/include/javascript/IJavaScript.h',
-        'fpdfsdk/include/javascript/JavaScript.h',
-        'fpdfsdk/include/javascript/JS_Context.h',
-        'fpdfsdk/include/javascript/JS_Define.h',
-        'fpdfsdk/include/javascript/JS_EventHandler.h',
-        'fpdfsdk/include/javascript/JS_GlobalData.h',
-        'fpdfsdk/include/javascript/JS_Object.h',
-        'fpdfsdk/include/javascript/JS_Runtime.h',
-        'fpdfsdk/include/javascript/JS_Value.h',
-        'fpdfsdk/include/javascript/PublicMethods.h',
-        'fpdfsdk/include/javascript/report.h',
-        'fpdfsdk/include/javascript/resource.h',
-        'fpdfsdk/include/javascript/util.h',
-        'fpdfsdk/src/javascript/app.cpp',
-        'fpdfsdk/src/javascript/color.cpp',
-        'fpdfsdk/src/javascript/console.cpp',
-        'fpdfsdk/src/javascript/Consts.cpp',
-        'fpdfsdk/src/javascript/Document.cpp',
-        'fpdfsdk/src/javascript/event.cpp',
-        'fpdfsdk/src/javascript/Field.cpp',
-        'fpdfsdk/src/javascript/global.cpp',
-        'fpdfsdk/src/javascript/Icon.cpp',
-        'fpdfsdk/src/javascript/JS_Context.cpp',
-        'fpdfsdk/src/javascript/JS_EventHandler.cpp',
-        'fpdfsdk/src/javascript/JS_GlobalData.cpp',
-        'fpdfsdk/src/javascript/JS_Object.cpp',
-        'fpdfsdk/src/javascript/JS_Runtime.cpp',
-        'fpdfsdk/src/javascript/JS_Value.cpp',
-        'fpdfsdk/src/javascript/PublicMethods.cpp',
-        'fpdfsdk/src/javascript/report.cpp',
-        'fpdfsdk/src/javascript/resource.cpp',
-        'fpdfsdk/src/javascript/util.cpp',
-      ],
-    },
-    {
-      'target_name': 'jsapi',
-      'type': 'static_library',
-      'dependencies': [
-        '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
-      ],
-      'export_dependent_settings': [
-        '<(DEPTH)/v8/tools/gyp/v8.gyp:v8',
-      ],
-      'include_dirs': [
-        '<(DEPTH)/v8',
-        '<(DEPTH)/v8/include',
-      ],
-      'ldflags': [ '-L<(PRODUCT_DIR)',],
-      'sources': [
-        'fpdfsdk/include/jsapi/fxjs_v8.h',
-        'fpdfsdk/src/jsapi/fxjs_v8.cpp',
-      ],
-    },
-    {
       'target_name': 'formfiller',
-      'type': 'static_library',
+      'type': 'shared_library',
+      'cflags!': [
+        '-fvisibility=hidden',
+       ],
       'ldflags': [ '-L<(PRODUCT_DIR)',],
       'sources': [
         'fpdfsdk/include/formfiller/FFL_CBA_Fontmap.h',

@@ -7,6 +7,7 @@
     {
       'target_name': 'bigint',
       'type': 'static_library',
+      'cflags': [ '-fPIC', ],
       'sources': [
         'bigint/BigInteger.hh',
         'bigint/BigIntegerLibrary.hh',

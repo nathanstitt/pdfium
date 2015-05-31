@@ -10,9 +10,7 @@
       'PNG_USE_READ_MACROS',
     ],
     'include_dirs': [
-      '<(DEPTH)',
-      '<(DEPTH)/v8',
-      '<(DEPTH)/v8/include',
+      '<(DEPTH)'
     ],
   },
   'targets': [
@@ -21,8 +19,7 @@
       'type': 'executable',
       'dependencies': [
         'fx_lpng',
-        '../pdfium.gyp:pdfium',
-        '<(DEPTH)/v8/tools/gyp/v8.gyp:v8_libplatform',
+        '../pdfium.gyp:pdfium'
       ],
       'sources': [
         'pdfium_test.cc',

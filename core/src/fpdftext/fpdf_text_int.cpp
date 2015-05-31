@@ -1164,9 +1164,6 @@ void CPDF_TextPage::AddCharInfoByLRDirection(CFX_WideString& str, int i)
             FX_STRSIZE nCount = FX_Unicode_GetNormalization(wChar, pDst);
             if (nCount >= 1) {
                 pDst = FX_Alloc(FX_WCHAR, nCount);
-                if (!pDst) {
-                    return;
-                }
                 FX_Unicode_GetNormalization(wChar, pDst);
                 for (int nIndex = 0; nIndex < nCount; nIndex++) {
                     PAGECHAR_INFO Info2 = Info;
@@ -1199,9 +1196,6 @@ void CPDF_TextPage::AddCharInfoByRLDirection(CFX_WideString& str, int i)
         FX_STRSIZE nCount = FX_Unicode_GetNormalization(wChar, pDst);
         if (nCount >= 1) {
             pDst = FX_Alloc(FX_WCHAR, nCount);
-            if (!pDst) {
-                return;
-            }
             FX_Unicode_GetNormalization(wChar, pDst);
             for (int nIndex = 0; nIndex < nCount; nIndex++) {
                 PAGECHAR_INFO Info2 = Info;
@@ -1361,8 +1355,6 @@ void CPDF_TextPage::CloseTempLine()
             }
         }
     }
-    int ntext = m_TextBuf.GetSize();
-    ntext = m_charList.GetSize();
     order.RemoveAll();
     m_TempCharList.RemoveAll();
     m_TempTextBuf.Delete(0, m_TempTextBuf.GetLength());
@@ -2235,13 +2227,16 @@ FX_BOOL	CPDF_TextPage::IsLetter(FX_WCHAR unicode)
     return TRUE;
 }
 CPDF_TextPageFind::CPDF_TextPageFind(const IPDF_TextPage* pTextPage)
-    : m_pTextPage(NULL),
+    : m_pTextPage(pTextPage),
+      m_flags(0),
+      m_findNextStart(-1),
+      m_findPreStart(-1),
+      m_bMatchCase(FALSE),
+      m_bMatchWholeWord(FALSE),
+      m_resStart(0),
+      m_resEnd(-1),
       m_IsFind(FALSE)
 {
-    if (!pTextPage) {
-        return;
-    }
-    m_pTextPage = pTextPage;
     m_strText = m_pTextPage->GetPageText();
     int nCount = pTextPage->CountChars();
     if(nCount) {
@@ -2275,8 +2270,6 @@ CPDF_TextPageFind::CPDF_TextPageFind(const IPDF_TextPage* pTextPage)
     if(indexSize % 2) {
         m_CharIndex.RemoveAt(indexSize - 1);
     }
-    m_resStart = 0;
-    m_resEnd = -1;
 }
 int CPDF_TextPageFind::GetCharIndex(int index) const
 {
@@ -2379,7 +2372,7 @@ FX_BOOL CPDF_TextPageFind::FindNext()
             continue;
         }
         int endIndex;
-        nResultPos = m_strText.Find(csWord, nStartPos);
+        nResultPos = m_strText.Find(csWord.c_str(), nStartPos);
         if (nResultPos == -1) {
             m_IsFind = FALSE;
             return m_IsFind;
@@ -2496,7 +2489,7 @@ void CPDF_TextPageFind::ExtractFindWhat(const CFX_WideString& findwhat)
     int index = 0;
     while(1) {
         CFX_WideString csWord = TEXT_EMPTY;
-        int ret = ExtractSubString(csWord, findwhat, index, TEXT_BLANK_CHAR);
+        int ret = ExtractSubString(csWord, findwhat.c_str(), index, TEXT_BLANK_CHAR);
         if(csWord.IsEmpty()) {
             if(ret) {
                 m_csFindWhatArray.Add(CFX_WideString(L""));
@@ -2507,7 +2500,6 @@ void CPDF_TextPageFind::ExtractFindWhat(const CFX_WideString& findwhat)
             }
         }
         int pos = 0;
-        FX_BOOL bLastIgnore = FALSE;
         while(pos < csWord.GetLength()) {
             CFX_WideString curStr = csWord.Mid(pos, 1);
             FX_WCHAR curChar = csWord.GetAt(pos);
@@ -2527,10 +2519,7 @@ void CPDF_TextPageFind::ExtractFindWhat(const CFX_WideString& findwhat)
                 }
                 csWord = csWord.Right(csWord.GetLength() - pos - 1);
                 pos = 0;
-                bLastIgnore = TRUE;
                 continue;
-            } else {
-                bLastIgnore = FALSE;
             }
             pos++;
         }
@@ -2539,7 +2528,6 @@ void CPDF_TextPageFind::ExtractFindWhat(const CFX_WideString& findwhat)
         }
         index++;
     }
-    return;
 }
 FX_BOOL CPDF_TextPageFind::IsMatchWholeWord(const CFX_WideString& csPageText, int startPos, int endPos)
 {

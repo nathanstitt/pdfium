@@ -71,17 +71,11 @@ void CPDF_Image::SetJpegImage(IFX_FileRead *pFile)
         dwEstimateSize = 8192;
     }
     FX_LPBYTE pData = FX_Alloc(FX_BYTE, dwEstimateSize);
-    if (!pData) {
-        return;
-    }
     pFile->ReadBlock(pData, 0, dwEstimateSize);
     CPDF_Dictionary *pDict = InitJPEG(pData, dwEstimateSize);
     FX_Free(pData);
     if (!pDict && size > dwEstimateSize) {
         pData = FX_Alloc(FX_BYTE, size);
-        if (!pData) {
-            return;
-        }
         pFile->ReadBlock(pData, 0, size);
         pDict = InitJPEG(pData, size);
         FX_Free(pData);
@@ -162,7 +156,7 @@ void CPDF_Image::SetImage(const CFX_DIBitmap* pBitmap, FX_INT32 iCompress, IFX_F
             pCS->AddName(FX_BSTRC("Indexed"));
             pCS->AddName(FX_BSTRC("DeviceRGB"));
             pCS->AddInteger(iPalette - 1);
-            FX_LPBYTE pColorTable = FX_Alloc(FX_BYTE, iPalette * 3);
+            FX_LPBYTE pColorTable = FX_Alloc2D(FX_BYTE, iPalette, 3);
             FX_LPBYTE ptr = pColorTable;
             for (FX_INT32 i = 0; i < iPalette; i ++) {
                 FX_DWORD argb = pBitmap->GetPaletteArgb(i);
@@ -196,8 +190,10 @@ void CPDF_Image::SetImage(const CFX_DIBitmap* pBitmap, FX_INT32 iCompress, IFX_F
         }
     }
     const CFX_DIBitmap* pMaskBitmap = NULL;
+    FX_BOOL bDeleteMask = FALSE;
     if (pBitmap->HasAlpha()) {
         pMaskBitmap = pBitmap->GetAlphaMask();
+        bDeleteMask = TRUE;
     }
     if (!pMaskBitmap && pMask) {
         FXDIB_Format maskFormat = pMask->GetFormat();
@@ -210,7 +206,6 @@ void CPDF_Image::SetImage(const CFX_DIBitmap* pBitmap, FX_INT32 iCompress, IFX_F
         FX_INT32 maskHeight = pMaskBitmap->GetHeight();
         FX_LPBYTE mask_buf = NULL;
         FX_STRSIZE mask_size;
-        FX_BOOL bDeleteMask = TRUE;
         CPDF_Dictionary* pMaskDict = new CPDF_Dictionary;
         pMaskDict->SetAtName(FX_BSTRC("Type"), FX_BSTRC("XObject"));
         pMaskDict->SetAtName(FX_BSTRC("Subtype"), FX_BSTRC("Image"));
@@ -223,30 +218,26 @@ void CPDF_Image::SetImage(const CFX_DIBitmap* pBitmap, FX_INT32 iCompress, IFX_F
         } else if (pMaskBitmap->GetFormat() == FXDIB_1bppMask) {
             _JBIG2EncodeBitmap(pMaskDict, pMaskBitmap, m_pDocument, mask_buf, mask_size, TRUE);
         } else {
-            mask_size = maskHeight * maskWidth;
-            mask_buf = FX_Alloc(FX_BYTE, mask_size);
+            mask_buf = FX_Alloc2D(FX_BYTE, maskHeight, maskWidth);
+            mask_size = maskHeight * maskWidth;  // Safe since checked alloc returned.
             for (FX_INT32 a = 0; a < maskHeight; a ++) {
                 FXSYS_memcpy32(mask_buf + a * maskWidth, pMaskBitmap->GetScanline(a), maskWidth);
             }
         }
-        if (pMaskDict) {
-            pMaskDict->SetAtInteger(FX_BSTRC("Length"), mask_size);
-            CPDF_Stream* pMaskStream = NULL;
-            if (bUseMatte) {
-                int a, r, g, b;
-                ArgbDecode(*(pParam->pMatteColor), a, r, g, b);
-                CPDF_Array* pMatte = new CPDF_Array;
-                pMatte->AddInteger(r);
-                pMatte->AddInteger(g);
-                pMatte->AddInteger(b);
-                pMaskDict->SetAt(FX_BSTRC("Matte"), pMatte);
-            }
-            pMaskStream = new CPDF_Stream(mask_buf, mask_size, pMaskDict);
-            m_pDocument->AddIndirectObject(pMaskStream);
-            bDeleteMask = FALSE;
-            pDict->SetAtReference(FX_BSTRC("SMask"), m_pDocument, pMaskStream);
+        pMaskDict->SetAtInteger(FX_BSTRC("Length"), mask_size);
+        if (bUseMatte) {
+            int a, r, g, b;
+            ArgbDecode(*(pParam->pMatteColor), a, r, g, b);
+            CPDF_Array* pMatte = new CPDF_Array;
+            pMatte->AddInteger(r);
+            pMatte->AddInteger(g);
+            pMatte->AddInteger(b);
+            pMaskDict->SetAt(FX_BSTRC("Matte"), pMatte);
         }
-        if (pBitmap->HasAlpha()) {
+        CPDF_Stream* pMaskStream = new CPDF_Stream(mask_buf, mask_size, pMaskDict);
+        m_pDocument->AddIndirectObject(pMaskStream);
+        pDict->SetAtReference(FX_BSTRC("SMask"), m_pDocument, pMaskStream);
+        if (bDeleteMask) {
             delete pMaskBitmap;
         }
     }
@@ -306,8 +297,8 @@ void CPDF_Image::SetImage(const CFX_DIBitmap* pBitmap, FX_INT32 iCompress, IFX_F
         }
     } else if (opType == 1) {
         if (!bStream) {
-            dest_size = dest_pitch * BitmapHeight;
-            dest_buf = FX_Alloc(FX_BYTE, dest_size);
+            dest_buf = FX_Alloc2D(FX_BYTE, dest_pitch, BitmapHeight);
+            dest_size = dest_pitch * BitmapHeight;  // Safe since checked alloc returned.
         }
         FX_LPBYTE pDest = dest_buf;
         for (FX_INT32 i = 0; i < BitmapHeight; i ++) {
@@ -321,8 +312,8 @@ void CPDF_Image::SetImage(const CFX_DIBitmap* pBitmap, FX_INT32 iCompress, IFX_F
         }
     } else if (opType == 2) {
         if (!bStream) {
-            dest_size = dest_pitch * BitmapHeight;
-            dest_buf = FX_Alloc(FX_BYTE, dest_size);
+            dest_buf = FX_Alloc2D(FX_BYTE, dest_pitch, BitmapHeight);
+            dest_size = dest_pitch * BitmapHeight;  // Safe since checked alloc returned.
         } else {
             dest_buf = FX_Alloc(FX_BYTE, dest_pitch);
         }

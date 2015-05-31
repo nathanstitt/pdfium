@@ -4,11 +4,11 @@
  
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FPDF_OBJECTS_
-#define _FPDF_OBJECTS_
-#ifndef _FXCRT_EXTENSION_
+#ifndef CORE_INCLUDE_FPDFAPI_FPDF_OBJECTS_H_
+#define CORE_INCLUDE_FPDFAPI_FPDF_OBJECTS_H_
+
 #include "../fxcrt/fx_ext.h"
-#endif
+
 class CPDF_Document;
 class CPDF_IndirectObjects;
 class CPDF_Null;
@@ -39,12 +39,12 @@ class CPDF_Object
 {
 public:
 
-    int						GetType() const
+    int                                 GetType() const
     {
         return m_Type;
     }
 
-    FX_DWORD				GetObjNum() const
+    FX_DWORD                            GetObjNum() const
     {
         return m_ObjNum;
     }
@@ -54,51 +54,51 @@ public:
         return m_GenNum;
     }
 
-    FX_BOOL					IsIdentical(CPDF_Object* pObj) const;
+    FX_BOOL                             IsIdentical(CPDF_Object* pObj) const;
 
-    CPDF_Object*			Clone(FX_BOOL bDirect = FALSE) const;
+    CPDF_Object*                        Clone(FX_BOOL bDirect = FALSE) const;
 
-    CPDF_Object*			CloneRef(CPDF_IndirectObjects* pObjs) const;
+    CPDF_Object*                        CloneRef(CPDF_IndirectObjects* pObjs) const;
 
-    CPDF_Object*			GetDirect() const;
+    CPDF_Object*                        GetDirect() const;
 
-    void					Release();
+    void                                Release();
 
-    CFX_ByteString			GetString() const;
+    CFX_ByteString                      GetString() const;
 
-    CFX_ByteStringC			GetConstString() const;
+    CFX_ByteStringC                     GetConstString() const;
 
-    CFX_WideString			GetUnicodeText(CFX_CharMap* pCharMap = NULL) const;
+    CFX_WideString                      GetUnicodeText(CFX_CharMap* pCharMap = NULL) const; 
+    FX_FLOAT                            GetNumber() const;
 
-    FX_FLOAT				GetNumber() const;
+    FX_FLOAT                            GetNumber16() const;
 
-    FX_FLOAT				GetNumber16() const;
+    int                                 GetInteger() const;
 
-    int						GetInteger() const;
+    CPDF_Dictionary*                    GetDict() const;
 
-    CPDF_Dictionary*		GetDict() const;
+    CPDF_Array*                         GetArray() const;
 
-    CPDF_Array*				GetArray() const;
+    void                                SetString(const CFX_ByteString& str);
 
-    void					SetString(const CFX_ByteString& str);
+    void                                SetUnicodeText(FX_LPCWSTR pUnicodes, int len = -1);
 
-    void					SetUnicodeText(FX_LPCWSTR pUnicodes, int len = -1);
+    int                                 GetDirectType() const;
 
-    int						GetDirectType() const;
-
-    FX_BOOL					IsModified() const
+    FX_BOOL                             IsModified() const
     {
         return FALSE;
     }
 protected:
     CPDF_Object(FX_DWORD type) : m_Type(type), m_ObjNum(0), m_GenNum(0) { }
     ~CPDF_Object() { }
+    void                                Destroy();
 
-    void					Destroy();
-
-    FX_DWORD				m_Type;
-    FX_DWORD 				m_ObjNum;
-    FX_DWORD				m_GenNum;
+    static const int                    OBJECT_REF_MAX_DEPTH = 128;
+    static int                          s_nCurRefDepth;
+    FX_DWORD                            m_Type;
+    FX_DWORD                            m_ObjNum;
+    FX_DWORD                            m_GenNum;
 
     friend class			CPDF_IndirectObjects;
     friend class			CPDF_Parser;
@@ -742,4 +742,5 @@ protected:
 
     FX_DWORD				m_LastObjNum;
 };
-#endif
+
+#endif  // CORE_INCLUDE_FPDFAPI_FPDF_OBJECTS_H_

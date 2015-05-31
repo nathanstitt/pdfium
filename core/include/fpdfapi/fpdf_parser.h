@@ -4,14 +4,12 @@
  
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FPDF_PARSER_
-#define _FPDF_PARSER_
-#ifndef _FX_BASIC_H_
+#ifndef CORE_INCLUDE_FPDFAPI_FPDF_PARSER_H_
+#define CORE_INCLUDE_FPDFAPI_FPDF_PARSER_H_
+
 #include "../fxcrt/fx_ext.h"
-#endif
-#ifndef _FPDF_OBJECTS_
 #include "fpdf_objects.h"
-#endif
+
 class CPDF_Document;
 class IPDF_DocParser;
 class CPDF_Parser;
@@ -793,9 +791,14 @@ CFX_ByteString PDF_NameDecode(FX_BSTR orig);
 CFX_ByteString PDF_NameDecode(const CFX_ByteString& orig);
 CFX_ByteString PDF_NameEncode(const CFX_ByteString& orig);
 CFX_ByteString PDF_EncodeString(const CFX_ByteString& src, FX_BOOL bHex = FALSE);
-CFX_WideString PDF_DecodeText(const CFX_ByteString& str, CFX_CharMap* pCharMap = NULL);
 CFX_WideString PDF_DecodeText(FX_LPCBYTE pData, FX_DWORD size, CFX_CharMap* pCharMap = NULL);
+inline CFX_WideString PDF_DecodeText(const CFX_ByteString& bstr, CFX_CharMap* pCharMap = NULL) {
+    return PDF_DecodeText((FX_LPCBYTE)bstr.c_str(), bstr.GetLength(), pCharMap);
+}
 CFX_ByteString PDF_EncodeText(FX_LPCWSTR pString, int len = -1, CFX_CharMap* pCharMap = NULL);
+inline CFX_ByteString PDF_EncodeText(const CFX_WideString& str, CFX_CharMap* pCharMap = NULL) {
+    return PDF_EncodeText(str.c_str(), str.GetLength(), pCharMap);
+}
 FX_FLOAT PDF_ClipFloat(FX_FLOAT f);
 class CFDF_Document : public CPDF_IndirectObjects
 {
@@ -942,4 +945,5 @@ enum PDF_DATAAVAIL_STATUS {
     PDF_DATAAVAIL_LOADALLFILE,
     PDF_DATAAVAIL_TRAILER_APPEND
 };
-#endif
+
+#endif  // CORE_INCLUDE_FPDFAPI_FPDF_PARSER_H_

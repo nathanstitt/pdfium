@@ -6,11 +6,12 @@
 
 #include "../include/fsdk_define.h"
 #include "../include/fsdk_mgr.h"
-#include "../include/fpdfview.h"
 #include "../include/fsdk_rendercontext.h"
-#include "../include/fpdf_progressive.h"
-#include "../include/fpdf_ext.h"
+#include "../../public/fpdfview.h"
+#include "../../public/fpdf_progressive.h"
+#include "../../public/fpdf_ext.h"
 #include "../../../core/src/fxcrt/fx_safe_types.h"
+#include "../../third_party/base/nonstd_unique_ptr.h"
 #include "../../third_party/base/numerics/safe_conversions_impl.h"
 
 CPDF_CustomAccess::CPDF_CustomAccess(FPDF_FILEACCESS* pFileAccess)
@@ -597,9 +598,11 @@ DLLEXPORT void STDCALL FPDF_PageToDevice(FPDF_PAGE page, int start_x, int start_
 
 DLLEXPORT FPDF_BITMAP STDCALL FPDFBitmap_Create(int width, int height, int alpha)
 {
-	CFX_DIBitmap* pBitmap = new CFX_DIBitmap;
-	pBitmap->Create(width, height, alpha ? FXDIB_Argb : FXDIB_Rgb32);
-	return pBitmap;
+    nonstd::unique_ptr<CFX_DIBitmap> pBitmap(new CFX_DIBitmap);
+    if (!pBitmap->Create(width, height, alpha ? FXDIB_Argb : FXDIB_Rgb32)) {
+        return NULL;
+    }
+    return pBitmap.release();
 }
 
 DLLEXPORT FPDF_BITMAP STDCALL FPDFBitmap_CreateEx(int width, int height, int format, void* first_scan, int stride)
@@ -689,6 +692,12 @@ void FPDF_RenderPage_Retail(CRenderContext* pContext, FPDF_PAGE page, int start_
 		pContext->m_pOptions->m_Flags |= RENDER_LIMITEDIMAGECACHE;
 	if (flags & FPDF_RENDER_FORCEHALFTONE)
 		pContext->m_pOptions->m_Flags |= RENDER_FORCE_HALFTONE;
+	if (flags & FPDF_RENDER_NO_SMOOTHTEXT)
+		pContext->m_pOptions->m_Flags |= RENDER_NOTEXTSMOOTH;
+	if (flags & FPDF_RENDER_NO_SMOOTHIMAGE)
+		pContext->m_pOptions->m_Flags |= RENDER_NOIMAGESMOOTH;
+	if (flags & FPDF_RENDER_NO_SMOOTHPATH)
+		pContext->m_pOptions->m_Flags |= RENDER_NOPATHSMOOTH;
 	//Grayscale output
 	if (flags & FPDF_GRAYSCALE)
 	{
@@ -816,10 +825,10 @@ DLLEXPORT FPDF_DEST STDCALL FPDF_GetNamedDestByName(FPDF_DOCUMENT document,FPDF_
 	return name_tree.LookupNamedDest(pDoc, name);
 }
 
-DLLEXPORT FPDF_DEST STDCALL FPDF_GetNamedDest(FPDF_DOCUMENT document, int index, void* buffer, long& buflen)
+DLLEXPORT FPDF_DEST STDCALL FPDF_GetNamedDest(FPDF_DOCUMENT document, int index, void* buffer, long* buflen)
 {
     if (!buffer)
-        buflen = 0;
+        *buflen = 0;
     if (!document || index < 0) return NULL;
     CPDF_Document* pDoc = (CPDF_Document*)document;
 
@@ -856,12 +865,12 @@ DLLEXPORT FPDF_DEST STDCALL FPDF_GetNamedDest(FPDF_DOCUMENT document, int index,
     CFX_ByteString utf16Name = wsName.UTF16LE_Encode();
     unsigned int len = utf16Name.GetLength();
     if (!buffer) {
-        buflen = len;
-    } else if (buflen >= len) {
+        *buflen = len;
+    } else if (*buflen >= len) {
         memcpy(buffer, utf16Name.c_str(), len);
-        buflen = len;
+        *buflen = len;
     } else {
-        buflen = -1;
+        *buflen = -1;
     }
     return (FPDF_DEST)pDestObj;
 }

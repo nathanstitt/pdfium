@@ -4,8 +4,8 @@
 
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FXCRT_EXTENSION_IMP_
-#define _FXCRT_EXTENSION_IMP_
+#ifndef CORE_SRC_FXCRT_EXTENSION_H_
+#define CORE_SRC_FXCRT_EXTENSION_H_
 
 #include "fx_safe_types.h"
 
@@ -348,9 +348,7 @@ public:
         if (m_dwFlags & FX_MEMSTREAM_Consecutive) {
             if (m_Blocks.GetSize() < 1) {
                 FX_LPBYTE pBlock = FX_Alloc(FX_BYTE, FX_MAX(nInitSize, 4096));
-                if (pBlock) {
-                    m_Blocks.Add(pBlock);
-                }
+                m_Blocks.Add(pBlock);
             }
             m_nGrowSize = FX_MAX(nGrowSize, 4096);
         } else if (m_Blocks.GetSize() < 1) {
@@ -407,9 +405,6 @@ protected:
         m_Blocks.SetSize(m_Blocks.GetSize() + (FX_INT32)size);
         while (size --) {
             FX_LPBYTE pBlock = FX_Alloc(FX_BYTE, m_nGrowSize);
-            if (!pBlock) {
-                return FALSE;
-            }
             m_Blocks.SetAt(iCount ++, pBlock);
             m_nTotalSize += m_nGrowSize;
         }
@@ -441,4 +436,5 @@ FX_BOOL FX_GenerateCryptoRandom(FX_LPDWORD pBuffer, FX_INT32 iCount);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif  // CORE_SRC_FXCRT_EXTENSION_H_

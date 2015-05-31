@@ -1,11 +1,14 @@
 // Copyright 2014 PDFium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
- 
+
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
 #include "../../../include/fpdfapi/fpdf_parser.h"
 #include "../../../include/fxcrt/fx_string.h"
+
+//static
+int CPDF_Object::s_nCurRefDepth = 0;
 
 void CPDF_Object::Release()
 {
@@ -107,6 +110,10 @@ FX_FLOAT CPDF_Object::GetNumber16() const
 }
 int CPDF_Object::GetInteger() const
 {
+    CFX_AutoRestorer<int> restorer(&s_nCurRefDepth);
+    if (++s_nCurRefDepth > OBJECT_REF_MAX_DEPTH) {
+        return 0;
+    }
     switch (m_Type) {
         case PDFOBJ_BOOLEAN:
             return ((CPDF_Boolean*)this)->m_bValue;
@@ -151,7 +158,7 @@ CPDF_Dictionary* CPDF_Object::GetDict() const
 }
 CPDF_Array* CPDF_Object::GetArray() const
 {
-    if (m_Type == PDFOBJ_ARRAY) 
+    if (m_Type == PDFOBJ_ARRAY)
         return (CPDF_Array*)this;
     else
         return NULL;
@@ -368,7 +375,7 @@ void CPDF_Number::SetNumber(FX_FLOAT value)
     m_Float = value;
 }
 CPDF_String::CPDF_String(const CFX_WideString& str) : CPDF_Object(PDFOBJ_STRING), m_bHex(FALSE) {
-    m_String = PDF_EncodeText(str, str.GetLength());
+    m_String = PDF_EncodeText(str);
 }
 CPDF_Array::~CPDF_Array()
 {
@@ -988,15 +995,14 @@ FX_BOOL CPDF_Stream::Identical(CPDF_Stream* pOther) const
         IFX_FileRead* pFile = NULL;
         FX_LPBYTE pBuf = NULL;
         FX_DWORD offset = 0;
-        if (m_GenNum != (FX_DWORD) - 1) {
-            pFile = m_pFile;
-            pBuf = pOther->m_pDataBuf;
-            offset = m_FileOffset;
-        }
         if (pOther->m_GenNum != (FX_DWORD) - 1) {
             pFile = pOther->m_pFile;
             pBuf = m_pDataBuf;
             offset = pOther->m_FileOffset;
+        } else if (m_GenNum != (FX_DWORD) - 1) {
+            pFile = m_pFile;
+            pBuf = pOther->m_pDataBuf;
+            offset = m_FileOffset;
         }
         if (NULL == pBuf) {
             return FALSE;
@@ -1004,8 +1010,8 @@ FX_BOOL CPDF_Stream::Identical(CPDF_Stream* pOther) const
         FX_BYTE srcBuf[1024];
         FX_DWORD size = m_dwSize;
         while (size > 0) {
-            FX_DWORD actualSize = size > 1024 ? 1024 : size;
-            m_pFile->ReadBlock(srcBuf, offset, actualSize);
+            FX_DWORD actualSize = std::min(size, 1024U);
+            pFile->ReadBlock(srcBuf, offset, actualSize);
             if (FXSYS_memcmp32(srcBuf, pBuf, actualSize) != 0) {
                 return FALSE;
             }
@@ -1080,7 +1086,7 @@ void CPDF_StreamAcc::LoadAllData(const CPDF_Stream* pStream, FX_BOOL bRawAccess,
     }
     if (!pStream->IsMemoryBased()) {
         pSrcData = m_pSrcData = FX_Alloc(FX_BYTE, dwSrcSize);
-        if (!pSrcData || !pStream->ReadRawData(0, pSrcData, dwSrcSize)) {
+        if (!pStream->ReadRawData(0, pSrcData, dwSrcSize)) {
             return;
         }
     } else {
@@ -1159,9 +1165,6 @@ FX_LPBYTE CPDF_StreamAcc::DetachData()
         return p;
     }
     FX_LPBYTE p = FX_Alloc(FX_BYTE, m_dwSize);
-    if (p == NULL) {
-        return NULL;
-    }
     FXSYS_memcpy32(p, m_pData, m_dwSize);
     return p;
 }
@@ -1269,9 +1272,9 @@ void CPDF_IndirectObjects::InsertIndirectObject(FX_DWORD objnum, CPDF_Object* pO
         {
             if (pObj->GetGenNum() <= ((CPDF_Object*)value)->GetGenNum())
                 return;
-            else 
+            else
                 ((CPDF_Object*)value)->Destroy();
-         }         
+         }
     }
     pObj->m_ObjNum = objnum;
     m_IndirectObjs.SetAt((FX_LPVOID)(FX_UINTPTR)objnum, pObj);

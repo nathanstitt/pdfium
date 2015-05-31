@@ -4,14 +4,12 @@
  
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FX_GE_H_
-#define _FX_GE_H_
-#ifndef _FX_DIB_H_
+#ifndef CORE_INCLUDE_FXGE_FX_GE_H_
+#define CORE_INCLUDE_FXGE_FX_GE_H_
+
 #include "fx_dib.h"
-#endif
-#ifndef _FX_FONT_H_
 #include "fx_font.h"
-#endif
+
 class CFX_ClipRgn;
 class CFX_PathData;
 class CFX_GraphStateData;
@@ -23,6 +21,7 @@ class CFX_RenderDevice;
 class IFX_RenderDeviceDriver;
 class CCodec_ModuleMgr;
 class IFXG_PaintModuleMgr;
+
 class CFX_GEModule 
 {
 public:
@@ -186,11 +185,9 @@ public:
         return m_pPoints;
     }
 
-    FX_BOOL				SetPointCount(int nPoints);
-
-    FX_BOOL				AllocPointCount(int nPoints);
-
-    FX_BOOL				AddPointCount(int addPoints);
+    void SetPointCount(int nPoints);
+    void AllocPointCount(int nPoints);
+    void AddPointCount(int addPoints);
 
     CFX_FloatRect		GetBoundingBox() const;
 
@@ -204,15 +201,14 @@ public:
 
     FX_BOOL				IsRect(const CFX_AffineMatrix* pMatrix, CFX_FloatRect* rect) const;
 
-    FX_BOOL				Append(const CFX_PathData* pSrc, const CFX_AffineMatrix* pMatrix);
-
-    FX_BOOL				AppendRect(FX_FLOAT left, FX_FLOAT bottom, FX_FLOAT right, FX_FLOAT top);
+    void Append(const CFX_PathData* pSrc, const CFX_AffineMatrix* pMatrix);
+    void AppendRect(FX_FLOAT left, FX_FLOAT bottom, FX_FLOAT right, FX_FLOAT top);
 
     void				SetPoint(int index, FX_FLOAT x, FX_FLOAT y, int flag);
 
     void				TrimPoints(int nPoints);
 
-    FX_BOOL				Copy(const CFX_PathData &src);
+    void Copy(const CFX_PathData &src);
 protected:
     friend class		CPDF_Path;
 
@@ -732,4 +728,5 @@ private:
 
     void			WritePSBinary(FX_LPCBYTE data, int len);
 };
-#endif
+
+#endif  // CORE_INCLUDE_FXGE_FX_GE_H_

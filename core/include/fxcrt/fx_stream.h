@@ -4,8 +4,8 @@
 
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FX_STREAM_H_
-#define _FX_STREAM_H_
+#ifndef CORE_INCLUDE_FXCRT_FX_STREAM_H_
+#define CORE_INCLUDE_FXCRT_FX_STREAM_H_
 
 #include "fx_memory.h"
 #include "fx_string.h"
@@ -16,7 +16,9 @@ FX_BOOL FX_GetNextFile(void* handle, CFX_ByteString& filename, FX_BOOL& bFolder)
 FX_BOOL FX_GetNextFile(void* handle, CFX_WideString& filename, FX_BOOL& bFolder);
 void FX_CloseFolder(void* handle);
 FX_WCHAR FX_GetFolderSeparator();
-FX_DEFINEHANDLE(FX_HFILE)
+typedef struct FX_HFILE_ {
+    FX_LPVOID pData;
+}* FX_HFILE;
 #if _FXM_PLATFORM_ == _FXM_PLATFORM_WINDOWS_
 #define FX_FILESIZE			FX_INT32
 #else
@@ -198,4 +200,5 @@ public:
 
     virtual FX_FILESIZE		GetBlockOffset() = 0;
 };
-#endif
+
+#endif  // CORE_INCLUDE_FXCRT_FX_STREAM_H_

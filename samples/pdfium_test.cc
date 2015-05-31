@@ -13,15 +13,14 @@
 #include <utility>
 #include <vector>
 
-#include "../fpdfsdk/include/fpdf_dataavail.h"
-#include "../fpdfsdk/include/fpdf_ext.h"
-#include "../fpdfsdk/include/fpdfformfill.h"
-#include "../fpdfsdk/include/fpdftext.h"
-#include "../fpdfsdk/include/fpdfview.h"
-#include "../core/include/fxcrt/fx_system.h"
+#include "../public/fpdf_dataavail.h"
+#include "../public/fpdf_ext.h"
+#include "../public/fpdf_formfill.h"
+#include "../public/fpdf_text.h"
+#include "../public/fpdfview.h"
 #include "image_diff_png.h"
-#include "v8/include/v8.h"
 #include "v8/include/libplatform/libplatform.h"
+#include "v8/include/v8.h"
 
 #ifdef _WIN32
 #define snprintf _snprintf
@@ -414,7 +413,7 @@ int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
   return 1;
 }
 
-bool Is_Data_Avail(FX_FILEAVAIL* pThis, size_t offset, size_t size) {
+FPDF_BOOL Is_Data_Avail(FX_FILEAVAIL* pThis, size_t offset, size_t size) {
   return true;
 }
 
@@ -485,8 +484,8 @@ void RenderPdf(const std::string& name, const char* pBuf, size_t len,
   FORM_DoDocumentJSAction(form);
   FORM_DoDocumentOpenAction(form);
 
-  size_t rendered_pages = 0;
-  size_t bad_pages = 0;
+  int rendered_pages = 0;
+  int bad_pages = 0;
   for (int i = 0; i < page_count; ++i) {
     FPDF_PAGE page = FPDF_LoadPage(doc, i);
     if (!page) {
@@ -505,6 +504,12 @@ void RenderPdf(const std::string& name, const char* pBuf, size_t len,
     int height = static_cast<int>(FPDF_GetPageHeight(page) * scale);
 
     FPDF_BITMAP bitmap = FPDFBitmap_Create(width, height, 0);
+    if (!bitmap) {
+      fprintf(stderr, "Page was too large to be rendered.\n");
+      bad_pages++;
+      continue;
+    }
+
     FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xFFFFFFFF);
     FPDF_RenderPageBitmap(bitmap, page, 0, 0, width, height, 0, 0);
     rendered_pages ++;
@@ -545,12 +550,12 @@ void RenderPdf(const std::string& name, const char* pBuf, size_t len,
   }
 
   FORM_DoDocumentAAction(form, FPDFDOC_AACTION_WC);
-  FPDFDOC_ExitFormFillEnvironment(form);
   FPDF_CloseDocument(doc);
+  FPDFDOC_ExitFormFillEnvironment(form);
   FPDFAvail_Destroy(pdf_avail);
 
-  fprintf(stderr, "Rendered %" PRIuS " pages.\n", rendered_pages);
-  fprintf(stderr, "Skipped %" PRIuS " bad pages.\n", bad_pages);
+  fprintf(stderr, "Rendered %d pages.\n", rendered_pages);
+  fprintf(stderr, "Skipped %d bad pages.\n", bad_pages);
 }
 
 static const char usage_string[] =
@@ -577,6 +582,9 @@ int main(int argc, const char* argv[]) {
   v8::Platform* platform = v8::platform::CreateDefaultPlatform();
   v8::V8::InitializePlatform(platform);
   v8::V8::Initialize();
+  // By enabling predicatble mode, V8 won't post any background tasks.
+  const char predictable_flag[] = "--predictable";
+  v8::V8::SetFlagsFromString(predictable_flag, strlen(predictable_flag));
 
 #ifdef V8_USE_EXTERNAL_STARTUP_DATA
   v8::StartupData natives;

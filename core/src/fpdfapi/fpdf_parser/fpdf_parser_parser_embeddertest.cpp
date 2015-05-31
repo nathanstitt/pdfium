@@ -13,3 +13,10 @@ TEST_F(FPDFParserEmbeddertest, LoadError_454695) {
   EXPECT_TRUE(OpenDocument("testing/resources/bug_454695.pdf"));
 }
 
+TEST_F(FPDFParserEmbeddertest, Bug_481363) {
+  // Test colorspace object with malformed dictionary.
+  EXPECT_TRUE(OpenDocument("testing/resources/bug_481363.pdf"));
+  FPDF_PAGE page = LoadPage(0);
+  EXPECT_NE(nullptr, page);
+  UnloadPage(page);
+}

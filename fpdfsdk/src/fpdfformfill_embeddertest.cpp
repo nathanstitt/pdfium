@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 
-#include "../../fpdfsdk/include/fpdfformfill.h"
+#include "../../public/fpdf_formfill.h"
 #include "../../testing/embedder_test.h"
 #include "../../testing/embedder_test_mock_delegate.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -24,4 +24,5 @@ TEST_F(FPDFFormFillEmbeddertest, FirstTest) {
   EXPECT_TRUE(OpenDocument("testing/resources/hello_world.pdf"));
   FPDF_PAGE page = LoadPage(0);
   EXPECT_NE(nullptr, page);
+  UnloadPage(page);
 }

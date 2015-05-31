@@ -4,8 +4,9 @@
 
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FXCRT_XML_INT_
-#define _FXCRT_XML_INT_
+#ifndef CORE_SRC_FXCRT_XML_INT_H_
+#define CORE_SRC_FXCRT_XML_INT_H_
+
 class CXML_DataBufAcc : public IFX_BufferRead
 {
 public:
@@ -107,9 +108,6 @@ public:
         m_dwSize = (size_t)FX_MIN(FX_XMLDATASTREAM_BufferSize, nLength - m_nStart);
         if (!m_pBuffer) {
             m_pBuffer = FX_Alloc(FX_BYTE, m_dwSize);
-            if (!m_pBuffer) {
-                return FALSE;
-            }
         }
         return m_pFileRead->ReadBlock(m_pBuffer, m_nStart, m_dwSize);
     }
@@ -161,4 +159,5 @@ public:
     void			InsertCDATASegment(CFX_UTF8Decoder& decoder, CXML_Element* pElement);
 };
 void FX_XML_SplitQualifiedName(FX_BSTR bsFullName, CFX_ByteStringC &bsSpace, CFX_ByteStringC &bsName);
-#endif
+
+#endif  // CORE_SRC_FXCRT_XML_INT_H_

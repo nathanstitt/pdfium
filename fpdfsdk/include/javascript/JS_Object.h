@@ -4,8 +4,8 @@
 
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _JS_OBJECT_H_
-#define _JS_OBJECT_H_
+#ifndef FPDFSDK_INCLUDE_JAVASCRIPT_JS_OBJECT_H_
+#define FPDFSDK_INCLUDE_JAVASCRIPT_JS_OBJECT_H_
 
 #include "../fsdk_define.h"  // For FX_UINT
 #include "../fsdk_mgr.h"  // For CPDFDoc_Environment
@@ -46,6 +46,7 @@ public:
 	virtual ~CJS_Object(void);
 
 	void						MakeWeak();
+        void                                            Dispose();
 
 	virtual FX_BOOL				IsType(FX_LPCSTR sClassName){return TRUE;};
 	virtual CFX_ByteString		GetClassName(){return "";};
@@ -66,7 +67,7 @@ public:
 	v8::Isolate*					GetIsolate() {return m_pIsolate;}
 protected:
 	CJS_EmbedObj *				m_pEmbedObj;
-	v8::Persistent<v8::Object>			m_pObject;
+	v8::Global<v8::Object>			m_pObject;
 	v8::Isolate*					m_pIsolate;
 };
 
@@ -290,4 +291,5 @@ private:
 
 	CPDFDoc_Environment*			m_pApp;
 };
-#endif //_JS_OBJECT_H_
+
+#endif  // FPDFSDK_INCLUDE_JAVASCRIPT_JS_OBJECT_H_

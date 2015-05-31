@@ -1862,7 +1862,7 @@ CPDF_Stream* CPDFSDK_InterForm::LoadImageFromFile(const CFX_WideString& sFile)
 
 	CPDF_Stream* pRetStream = NULL;
 
-	if (CFX_DIBitmap* pBmp = CFX_WindowsDIB::LoadFromFile(sFile))
+	if (CFX_DIBitmap* pBmp = CFX_WindowsDIB::LoadFromFile(sFile.c_str()))
 	{
 		int nWidth = pBmp->GetWidth();
 		int nHeight = pBmp->GetHeight();
@@ -2356,10 +2356,7 @@ FX_BOOL CPDFSDK_InterForm::FDFToURLEncodedData(FX_LPBYTE& pBuf, FX_STRSIZE& nBuf
 
 		nBufSize = fdfEncodedData.GetLength();
 		pBuf = FX_Alloc(FX_BYTE, nBufSize);
-		if(!pBuf)
-			return FALSE;
 		FXSYS_memcpy(pBuf, fdfEncodedData.GetBuffer(), nBufSize);
-
  	}
 	return TRUE;
 }
@@ -2530,7 +2527,7 @@ int	CPDFSDK_InterForm::AfterValueChange(const CPDF_FormField* pField)
 		FX_BOOL bFormated = FALSE;
 		CFX_WideString sValue = this->OnFormat(pFormField, 0, bFormated);
 		if (bFormated)
-			this->ResetFieldAppearance(pFormField, sValue, TRUE);
+			this->ResetFieldAppearance(pFormField, sValue.c_str(), TRUE);
 		else
 			this->ResetFieldAppearance(pFormField, NULL, TRUE);
 		this->UpdateField(pFormField);

@@ -91,17 +91,32 @@ void CJS_RuntimeFactory::ReleaseGlobalData()
 	}
 }
 
+void* CJS_ArrayBufferAllocator::Allocate(size_t length) {
+    return calloc(1, length);
+}
+
+void* CJS_ArrayBufferAllocator::AllocateUninitialized(size_t length) {
+    return malloc(length);
+}
+
+void CJS_ArrayBufferAllocator::Free(void* data, size_t length) {
+    free(data);
+}
+
 /* ------------------------------ CJS_Runtime ------------------------------ */
 
 CJS_Runtime::CJS_Runtime(CPDFDoc_Environment * pApp) : 
 	m_pApp(pApp),
 	m_pDocument(NULL),
 	m_bBlocking(FALSE),
-	m_pFieldEventPath(NULL),
-	m_bRegistered(FALSE)
+	m_bRegistered(FALSE),
+	m_pFieldEventPath(NULL)
 {
-	m_isolate = v8::Isolate::New();
-	//m_isolate->Enter();
+	m_pArrayBufferAllocator.reset(new CJS_ArrayBufferAllocator());
+
+	v8::Isolate::CreateParams params;
+	params.array_buffer_allocator = m_pArrayBufferAllocator.get();
+	m_isolate = v8::Isolate::New(params);
 
 	InitJSObjects();
 
@@ -134,7 +149,7 @@ FX_BOOL CJS_Runtime::InitJSObjects()
 {
 	v8::Isolate::Scope isolate_scope(GetIsolate());
 	v8::HandleScope handle_scope(GetIsolate());
-	v8::Handle<v8::Context> context = v8::Context::New(GetIsolate());
+	v8::Local<v8::Context> context = v8::Context::New(GetIsolate());
 	v8::Context::Scope context_scope(context);
 	//0 - 8
 	if (CJS_Border::Init(*this, JS_STATIC) < 0) return FALSE;
@@ -313,7 +328,7 @@ void CJS_Runtime::RemoveEventsInLoop(CJS_FieldEvent* pStart)
 	}
 }
 
-v8::Handle<v8::Context>	CJS_Runtime::NewJSContext()
+v8::Local<v8::Context>	CJS_Runtime::NewJSContext()
 {
 	return v8::Local<v8::Context>::New(m_isolate, m_context);
 }

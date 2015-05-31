@@ -14,9 +14,9 @@
 #include <utility>
 #include <vector>
 
-#include "../fpdfsdk/include/fpdftext.h"
-#include "../fpdfsdk/include/fpdfview.h"
 #include "../core/include/fxcrt/fx_system.h"
+#include "../public/fpdf_text.h"
+#include "../public/fpdfview.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #ifdef JS_SUPPORT
 #include "v8/include/v8.h"
@@ -37,24 +37,24 @@ static char* GetFileContents(const char* filename, size_t* retlen) {
   FILE* file = fopen(filename, "rb");
   if (!file) {
     fprintf(stderr, "Failed to open: %s\n", filename);
-    return NULL;
+    return nullptr;
   }
   (void) fseek(file, 0, SEEK_END);
   size_t file_length = ftell(file);
   if (!file_length) {
-    return NULL;
+    return nullptr;
   }
   (void) fseek(file, 0, SEEK_SET);
   char* buffer = (char*) malloc(file_length);
   if (!buffer) {
-    return NULL;
+    return nullptr;
   }
   size_t bytes_read = fread(buffer, 1, file_length, file);
   (void) fclose(file);
   if (bytes_read != file_length) {
     fprintf(stderr, "Failed to read: %s\n", filename);
     free(buffer);
-    return NULL;
+    return nullptr;
   }
   *retlen = bytes_read;
   return buffer;
@@ -167,7 +167,7 @@ int Get_Block(void* param, unsigned long pos, unsigned char* pBuf,
   return 1;
 }
 
-bool Is_Data_Avail(FX_FILEAVAIL* pThis, size_t offset, size_t size) {
+FPDF_BOOL Is_Data_Avail(FX_FILEAVAIL* pThis, size_t offset, size_t size) {
   return true;
 }
 
@@ -195,6 +195,10 @@ EmbedderTest::~EmbedderTest() {
 void EmbedderTest::SetUp() {
 #ifdef JS_SUPPORT
     v8::V8::InitializeICU();
+    // By enabling predicatble mode, V8 won't post any background tasks.
+    const char predictable_flag[] = "--predictable";
+    v8::V8::SetFlagsFromString(predictable_flag, strlen(predictable_flag));
+
 #ifdef V8_USE_EXTERNAL_STARTUP_DATA
     ASSERT_TRUE(GetExternalData(g_exe_path_, "natives_blob.bin", &natives_));
     ASSERT_TRUE(GetExternalData(g_exe_path_, "snapshot_blob.bin", &snapshot_));
@@ -213,21 +217,15 @@ void EmbedderTest::SetUp() {
   }
 
 void EmbedderTest::TearDown() {
-  if (form_handle_) {
-    FORM_DoDocumentAAction(form_handle_, FPDFDOC_AACTION_WC);
-    FPDFDOC_ExitFormFillEnvironment(form_handle_);
-  }
   if (document_) {
+    FORM_DoDocumentAAction(form_handle_, FPDFDOC_AACTION_WC);
     FPDF_CloseDocument(document_);
+    FPDFDOC_ExitFormFillEnvironment(form_handle_);
   }
   FPDFAvail_Destroy(avail_);
   FPDF_DestroyLibrary();
-  if (loader_) {
-    delete loader_;
-  }
-  if (file_contents_) {
-    free(file_contents_);
-  }
+  delete loader_;
+  free(file_contents_);
 }
 
 bool EmbedderTest::OpenDocument(const std::string& filename) {
@@ -251,9 +249,9 @@ bool EmbedderTest::OpenDocument(const std::string& filename) {
   (void) FPDFAvail_IsDocAvail(avail_, &hints_);
 
   if (!FPDFAvail_IsLinearized(avail_)) {
-    document_ = FPDF_LoadCustomDocument(&file_access_, NULL);
+    document_ = FPDF_LoadCustomDocument(&file_access_, nullptr);
   } else {
-    document_ = FPDFAvail_GetDocument(avail_, NULL);
+    document_ = FPDFAvail_GetDocument(avail_, nullptr);
   }
 
   (void) FPDF_GetDocPermissions(document_);

@@ -4,12 +4,11 @@
  
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _JS_DEFINE_H_
-#define _JS_DEFINE_H_
+#ifndef FPDFSDK_INCLUDE_JAVASCRIPT_JS_DEFINE_H_
+#define FPDFSDK_INCLUDE_JAVASCRIPT_JS_DEFINE_H_
 
 #include "../jsapi/fxjs_v8.h"
 #include "resource.h"
-
 #include "JS_Object.h"
 #include "JS_Value.h"
 
@@ -32,7 +31,6 @@ struct JSMethodSpec
 {
 	const wchar_t* pName;
 	v8::FunctionCallback pMethodCall;
-	unsigned nParamNum;
 };
 
 /* ====================================== PUBLIC DEFINE SPEC ============================================== */
@@ -48,8 +46,8 @@ struct JSMethodSpec
 #define END_JS_STATIC_PROP() {0, 0, 0}};
 
 #define BEGIN_JS_STATIC_METHOD(js_class_name) JSMethodSpec js_class_name::JS_Class_Methods[] = {
-#define JS_STATIC_METHOD_ENTRY(method_name, nargs) {JS_WIDESTRING(method_name), method_name##_static, nargs},
-#define END_JS_STATIC_METHOD() {0, 0, 0}};
+#define JS_STATIC_METHOD_ENTRY(method_name) {JS_WIDESTRING(method_name), method_name##_static},
+#define END_JS_STATIC_METHOD() {0, 0}};
 
 /* ======================================== PROP CALLBACK ============================================ */
 
@@ -61,7 +59,7 @@ void JSPropGetter(const char* prop_name_string,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* pContext = pRuntime->GetCurrentContext();
   CJS_Object* pJSObj = (CJS_Object*)JS_GetPrivate(isolate,info.Holder());
@@ -73,7 +71,7 @@ void JSPropGetter(const char* prop_name_string,
     JS_Error(isolate, JSFormatErrorString(class_name_string, prop_name_string, sError));
     return;
   }
-  info.GetReturnValue().Set((v8::Handle<v8::Value>)value);
+  info.GetReturnValue().Set((v8::Local<v8::Value>)value);
 }
 
 template <class C, FX_BOOL (C::*M)(IFXJS_Context* cc, CJS_PropValue& vp, CFX_WideString& sError)>
@@ -85,7 +83,7 @@ void JSPropSetter(const char* prop_name_string,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* pContext = pRuntime->GetCurrentContext();
   CJS_Object* pJSObj = (CJS_Object*)JS_GetPrivate(isolate,info.Holder());
@@ -122,7 +120,7 @@ void JSMethod(const char* method_name_string,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* cc = pRuntime->GetCurrentContext();
   CJS_Parameters parameters;
@@ -137,7 +135,7 @@ void JSMethod(const char* method_name_string,
       JS_Error(isolate, JSFormatErrorString(class_name_string, method_name_string, sError));
     return;
   }
-  info.GetReturnValue().Set(valueRes.ToJSValue());
+  info.GetReturnValue().Set(valueRes.ToV8Value());
 }
 
 #define JS_STATIC_METHOD(method_name, class_name) \
@@ -194,7 +192,7 @@ int js_class_name::Init(IJS_Runtime* pRuntime, FXJSOBJTYPE eObjType)\
 		}\
 		for (int k=0, szk=sizeof(JS_Class_Methods)/sizeof(JSMethodSpec)-1; k<szk; k++)\
 		{\
-			if (JS_DefineObjMethod(pRuntime, nObjDefnID,JS_Class_Methods[k].pName, JS_Class_Methods[k].pMethodCall, JS_Class_Methods[k].nParamNum) < 0) return -1;\
+			if (JS_DefineObjMethod(pRuntime, nObjDefnID,JS_Class_Methods[k].pName, JS_Class_Methods[k].pMethodCall) < 0) return -1;\
 		}\
 		return nObjDefnID;\
 	}\
@@ -253,7 +251,7 @@ void JSSpecialPropGet(const char* class_name,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* pRuntimeContext = pRuntime->GetCurrentContext();
   CJS_Object* pJSObj = reinterpret_cast<CJS_Object*>(JS_GetPrivate(isolate, info.Holder()));
@@ -267,7 +265,7 @@ void JSSpecialPropGet(const char* class_name,
       JS_Error(isolate, JSFormatErrorString(class_name, "GetProperty", sError));
       return;
   }
-  info.GetReturnValue().Set((v8::Handle<v8::Value>)value);
+  info.GetReturnValue().Set((v8::Local<v8::Value>)value);
 }
 
 template <class Alt>
@@ -278,7 +276,7 @@ void JSSpecialPropPut(const char* class_name,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* pRuntimeContext = pRuntime->GetCurrentContext();
   CJS_Object* pJSObj = reinterpret_cast<CJS_Object*>(JS_GetPrivate(isolate, info.Holder()));
@@ -300,7 +298,7 @@ void JSSpecialPropDel(const char* class_name,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* pRuntimeContext = pRuntime->GetCurrentContext();
   CJS_Object* pJSObj = reinterpret_cast<CJS_Object*>(JS_GetPrivate(isolate, info.Holder()));
@@ -372,7 +370,7 @@ int js_class_name::Init(IJS_Runtime* pRuntime, FXJSOBJTYPE eObjType)\
 \
 		for (int k=0, szk=sizeof(JS_Class_Methods)/sizeof(JSMethodSpec)-1; k<szk; k++)\
 		{\
-			if (JS_DefineObjMethod(pRuntime, nObjDefnID,JS_Class_Methods[k].pName,JS_Class_Methods[k].pMethodCall,JS_Class_Methods[k].nParamNum)<0)return -1;\
+			if (JS_DefineObjMethod(pRuntime, nObjDefnID,JS_Class_Methods[k].pName,JS_Class_Methods[k].pMethodCall)<0)return -1;\
 		}\
 		if (JS_DefineObjAllProperties(pRuntime, nObjDefnID, js_class_name::queryprop_##js_class_name##_static, js_class_name::getprop_##js_class_name##_static,js_class_name::putprop_##js_class_name##_static,js_class_name::delprop_##js_class_name##_static)<0) return -1;\
 \
@@ -390,7 +388,7 @@ void JSGlobalFunc(const char *func_name_string,
   v8::Isolate* isolate = info.GetIsolate();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Value> v = context->GetEmbedderData(1);
-  v8::Handle<v8::External> field = v8::Handle<v8::External>::Cast(v);
+  v8::Local<v8::External> field = v8::Local<v8::External>::Cast(v);
   IFXJS_Runtime* pRuntime = (IFXJS_Runtime*)field->Value();
   IFXJS_Context* cc = pRuntime->GetCurrentContext();
   CJS_Parameters parameters;
@@ -404,7 +402,7 @@ void JSGlobalFunc(const char *func_name_string,
       JS_Error(isolate, JSFormatErrorString(func_name_string, nullptr, sError));
     return;
   }
-  info.GetReturnValue().Set(valueRes.ToJSValue());
+  info.GetReturnValue().Set(valueRes.ToV8Value());
 }
 
 #define JS_STATIC_GLOBAL_FUN(fun_name) \
@@ -419,7 +417,7 @@ static int Init(IJS_Runtime* pRuntime)
 #define BEGIN_JS_STATIC_GLOBAL_FUN(js_class_name) \
 JSMethodSpec js_class_name::global_methods[] = {
 
-#define JS_STATIC_GLOBAL_FUN_ENTRY(method_name,nargs) JS_STATIC_METHOD_ENTRY(method_name,nargs)
+#define JS_STATIC_GLOBAL_FUN_ENTRY(method_name) JS_STATIC_METHOD_ENTRY(method_name)
 
 #define END_JS_STATIC_GLOBAL_FUN() END_JS_STATIC_METHOD()
 
@@ -430,8 +428,7 @@ int js_class_name::Init(IJS_Runtime* pRuntime)\
 	{\
 		if (JS_DefineGlobalMethod(pRuntime,\
 				js_class_name::global_methods[i].pName,\
-				js_class_name::global_methods[i].pMethodCall,\
-				js_class_name::global_methods[i].nParamNum\
+				js_class_name::global_methods[i].pMethodCall\
 				) < 0\
 			)return -1;\
 	}\
@@ -452,7 +449,7 @@ for (int i=0; i<size; i++) array.SetElement(i,CJS_Value(pRuntime,ArrayContent[i]
 \
 CJS_PropValue prop(pRuntime);\
 prop << array;\
-if (JS_DefineGlobalConst(pRuntime, (const wchar_t*)ArrayName, prop.ToJSValue()) < 0)\
+if (JS_DefineGlobalConst(pRuntime, (const wchar_t*)ArrayName, prop.ToV8Value()) < 0)\
 	return -1
 
 /* ============================================================ */
@@ -466,6 +463,6 @@ if (JS_DefineGlobalConst(pRuntime, (const wchar_t*)ArrayName, prop.ToJSValue()) 
 #define VALUE_NAME_NULL			L"null"
 #define VALUE_NAME_UNDEFINED	L"undefined"
 
-FXJSVALUETYPE GET_VALUE_TYPE(v8::Handle<v8::Value> p);
+FXJSVALUETYPE GET_VALUE_TYPE(v8::Local<v8::Value> p);
 
-#endif //_JS_DEFINE_H_
+#endif  // FPDFSDK_INCLUDE_JAVASCRIPT_JS_DEFINE_H_

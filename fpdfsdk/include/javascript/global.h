@@ -4,8 +4,8 @@
  
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _GLOBAL_H_
-#define _GLOBAL_H_
+#ifndef FPDFSDK_INCLUDE_JAVASCRIPT_GLOBAL_H_
+#define FPDFSDK_INCLUDE_JAVASCRIPT_GLOBAL_H_
 
 #include "JS_Define.h"
 
@@ -33,7 +33,7 @@ struct js_global_data
 	double				dData;
 	bool				bData;
 	CFX_ByteString		sData;
-	v8::Persistent<v8::Object>  pData;
+	v8::Global<v8::Object>  pData;
 	bool				bPersistent;
 	bool				bDeleted;
 };
@@ -61,8 +61,8 @@ private:
 	FX_BOOL						SetGlobalVariables(FX_LPCSTR propname, int nType, 
 									double dData, bool bData, const CFX_ByteString& sData, JSObject pData, bool bDefaultPersistent);
 
-	void						ObjectToArray(v8::Handle<v8::Object> pObj, CJS_GlobalVariableArray& array);
-	void						PutObjectProperty(v8::Handle<v8::Object> obj, CJS_KeyValue* pData);
+	void						ObjectToArray(v8::Local<v8::Object> pObj, CJS_GlobalVariableArray& array);
+	void						PutObjectProperty(v8::Local<v8::Object> obj, CJS_KeyValue* pData);
 
 private:
 	CFX_MapByteStringToPtr		m_mapGlobal;
@@ -86,4 +86,4 @@ public:
 
 };
 
-#endif //_GLOBAL_H_
+#endif  // FPDFSDK_INCLUDE_JAVASCRIPT_GLOBAL_H_

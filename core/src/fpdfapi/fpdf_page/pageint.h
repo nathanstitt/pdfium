@@ -4,10 +4,11 @@
  
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _PAGEINT_H_
-#define _PAGEINT_H_
+#ifndef CORE_SRC_FPDFAPI_FPDF_PAGE_PAGEINT_H_
+#define CORE_SRC_FPDFAPI_FPDF_PAGE_PAGEINT_H_
 
 #include "../../../include/fpdfapi/fpdf_pageobj.h"
+
 #define PARSE_STEP_LIMIT		100
 #define STREAM_PARSE_BUFSIZE	20480
 class CPDF_QuickFontCache;
@@ -423,8 +424,9 @@ public:
     ~CPDF_IccProfile();
     FX_INT32 GetComponents() const { return m_nSrcComponents; }
     FX_BOOL					m_bsRGB;
-    FX_INT32                m_nSrcComponents;
     FX_LPVOID				m_pTransform;
+private:
+    FX_INT32                m_nSrcComponents;
 };
 class CPDF_DeviceCS : public CPDF_ColorSpace
 {
@@ -464,4 +466,4 @@ protected:
     CFX_MapByteStringToPtr	m_NamingCache;
 };
 
-#endif  // _PAGEINT_H_
+#endif  // CORE_SRC_FPDFAPI_FPDF_PAGE_PAGEINT_H_

@@ -57,10 +57,9 @@ void CTextPage::ProcessObject(CPDF_PageObject* pObject)
     CPDF_TextObject* pText = (CPDF_TextObject*)pObject;
     CPDF_Font* pFont = pText->m_TextState.GetFont();
     int count = pText->CountItems();
-    FX_FLOAT* pPosArray = FX_Alloc(FX_FLOAT, count * 2);
-    if (pPosArray) {
-        pText->CalcCharPos(pPosArray);
-    }
+    FX_FLOAT* pPosArray = FX_Alloc2D(FX_FLOAT, count, 2);
+    pText->CalcCharPos(pPosArray);
+
     FX_FLOAT fontsize_h = pText->m_TextState.GetFontSizeH();
     FX_FLOAT fontsize_v = pText->m_TextState.GetFontSizeV();
     FX_DWORD space_charcode = pFont->CharCodeFromUnicode(' ');
@@ -148,7 +147,6 @@ void CTextPage::ProcessObject(CPDF_PageObject* pObject)
                                   topy, bottomy, spacew, fontsize_v, segment, pFont);
     FX_Free(pPosArray);
 }
-static void ConvertPDFString(CFX_ByteString& result, CFX_ByteString& src, CPDF_Font* pFont);
 CTextBaseLine* CTextPage::InsertTextBox(CTextBaseLine* pBaseLine, FX_FLOAT basey, FX_FLOAT leftx,
                                         FX_FLOAT rightx, FX_FLOAT topy, FX_FLOAT bottomy, FX_FLOAT spacew, FX_FLOAT fontsize_v,
                                         CFX_ByteString& str, CPDF_Font* pFont)
@@ -225,44 +223,42 @@ void CTextPage::WriteOutput(CFX_WideStringArray& lines, int iMinWidth)
     }
     if (m_bAutoWidth) {
         int* widths = FX_Alloc(int, m_BaseLines.GetSize());
-        if (widths) {
-            for (i = 0; i < m_BaseLines.GetSize(); i ++) {
-                widths[i] = 0;
-                CTextBaseLine* pBaseLine = (CTextBaseLine*)m_BaseLines.GetAt(i);
-                int TotalChars = 0;
-                FX_FLOAT TotalWidth = 0;
-                int minchars;
-                pBaseLine->CountChars(TotalChars, TotalWidth, minchars);
-                if (TotalChars) {
-                    FX_FLOAT charwidth = TotalWidth / TotalChars;
-                    widths[i] = (int)((MaxRightX - MinLeftX) / charwidth);
-                }
-                if (widths[i] > 1000) {
-                    widths[i] = 1000;
-                }
-                if (widths[i] < minchars) {
-                    widths[i] = minchars;
-                }
+        for (i = 0; i < m_BaseLines.GetSize(); i ++) {
+            widths[i] = 0;
+            CTextBaseLine* pBaseLine = (CTextBaseLine*)m_BaseLines.GetAt(i);
+            int TotalChars = 0;
+            FX_FLOAT TotalWidth = 0;
+            int minchars;
+            pBaseLine->CountChars(TotalChars, TotalWidth, minchars);
+            if (TotalChars) {
+                FX_FLOAT charwidth = TotalWidth / TotalChars;
+                widths[i] = (int)((MaxRightX - MinLeftX) / charwidth);
             }
-            int AvgWidth = 0, widthcount = 0;
-            for (i = 0; i < m_BaseLines.GetSize(); i ++)
-                if (widths[i]) {
-                    AvgWidth += widths[i];
-                    widthcount ++;
-                }
-            AvgWidth = int((FX_FLOAT)AvgWidth / widthcount + 0.5);
-            int MaxWidth = 0;
-            for (i = 0; i < m_BaseLines.GetSize(); i ++)
-                if (MaxWidth < widths[i]) {
-                    MaxWidth = widths[i];
-                }
-            if (MaxWidth > AvgWidth * 6 / 5) {
-                MaxWidth = AvgWidth * 6 / 5;
+            if (widths[i] > 1000) {
+                widths[i] = 1000;
             }
-            FX_Free(widths);
-            if (iMinWidth < MaxWidth) {
-                iMinWidth = MaxWidth;
+            if (widths[i] < minchars) {
+                widths[i] = minchars;
             }
+        }
+        int AvgWidth = 0, widthcount = 0;
+        for (i = 0; i < m_BaseLines.GetSize(); i ++)
+            if (widths[i]) {
+                AvgWidth += widths[i];
+                widthcount ++;
+            }
+        AvgWidth = int((FX_FLOAT)AvgWidth / widthcount + 0.5);
+        int MaxWidth = 0;
+        for (i = 0; i < m_BaseLines.GetSize(); i ++)
+            if (MaxWidth < widths[i]) {
+                MaxWidth = widths[i];
+            }
+        if (MaxWidth > AvgWidth * 6 / 5) {
+            MaxWidth = AvgWidth * 6 / 5;
+        }
+        FX_Free(widths);
+        if (iMinWidth < MaxWidth) {
+            iMinWidth = MaxWidth;
         }
     }
     for (i = 0; i < m_BaseLines.GetSize(); i ++) {

@@ -4,8 +4,8 @@
 
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
-#ifndef _FX_BASIC_H_
-#define _FX_BASIC_H_
+#ifndef CORE_INCLUDE_FXCRT_FX_BASIC_H_
+#define CORE_INCLUDE_FXCRT_FX_BASIC_H_
 
 #include "fx_memory.h"
 #include "fx_stream.h"
@@ -773,32 +773,6 @@ private:
     DataType		m_Data[FixedSize];
     DataType*		m_pData;
 };
-template <class DataType>
-class CFX_TempBuf
-{
-public:
-    CFX_TempBuf(int size)
-    {
-        m_pData = FX_Alloc(DataType, size);
-    }
-    ~CFX_TempBuf()
-    {
-        if (m_pData) {
-            FX_Free(m_pData);
-        }
-    }
-    DataType&	operator[](int i)
-    {
-        FXSYS_assert(m_pData != NULL);
-        return m_pData[i];
-    }
-    operator DataType*()
-    {
-        return m_pData;
-    }
-private:
-    DataType*		m_pData;
-};
 class CFX_MapPtrToPtr 
 {
 protected:
@@ -1480,10 +1454,7 @@ public:
         while (nCount > 0) {
             FX_INT32 temp_count = FX_MIN(nCount, FX_DATALIST_LENGTH);
             DataList list;
-            list.data = FX_Alloc(FX_BYTE, temp_count * unit);
-            if (!list.data) {
-                break;
-            }
+            list.data = FX_Alloc2D(FX_BYTE, temp_count, unit);
             list.start = nStart;
             list.count = temp_count;
             Append(list);
@@ -1639,4 +1610,4 @@ public:
     FX_FLOAT i;
 };
 
-#endif
+#endif  // CORE_INCLUDE_FXCRT_FX_BASIC_H_

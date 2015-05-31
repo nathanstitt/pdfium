@@ -18,8 +18,9 @@
 #include "../fpdfsdk/include/fpdfview.h"
 #include "../core/include/fxcrt/fx_system.h"
 #include "testing/gmock/include/gmock/gmock.h"
+#ifdef JS_SUPPORT
 #include "v8/include/v8.h"
-
+#endif
 #ifdef _WIN32
 #define snprintf _snprintf
 #define PATH_SEPARATOR '\\'
@@ -192,14 +193,15 @@ EmbedderTest::~EmbedderTest() {
 }
 
 void EmbedderTest::SetUp() {
+#ifdef JS_SUPPORT
     v8::V8::InitializeICU();
-
 #ifdef V8_USE_EXTERNAL_STARTUP_DATA
     ASSERT_TRUE(GetExternalData(g_exe_path_, "natives_blob.bin", &natives_));
     ASSERT_TRUE(GetExternalData(g_exe_path_, "snapshot_blob.bin", &snapshot_));
     v8::V8::SetNativesDataBlob(&natives_);
     v8::V8::SetSnapshotDataBlob(&snapshot_);
 #endif  // V8_USE_EXTERNAL_STARTUP_DATA
+#endif
 
     FPDF_InitLibrary();
 

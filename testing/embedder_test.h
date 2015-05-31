@@ -13,8 +13,9 @@
 #include "../fpdfsdk/include/fpdfformfill.h"
 #include "../fpdfsdk/include/fpdfview.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#ifdef JS_SUPPORT
 #include "v8/include/v8.h"
-
+#endif
 class TestLoader;
 
 // This class is used to load a PDF document, and then run programatic
@@ -81,8 +82,10 @@ class EmbedderTest : public ::testing::Test,
   FX_DOWNLOADHINTS hints_;
   FPDF_FILEACCESS file_access_;
   FX_FILEAVAIL file_avail_;
+  #ifdef JS_SUPPORT
   v8::StartupData natives_;
   v8::StartupData snapshot_;
+  #endif
   TestLoader* loader_;
   size_t file_length_;
   char* file_contents_;
@@ -94,4 +97,3 @@ class EmbedderTest : public ::testing::Test,
 };
 
 #endif  // TESTING_EMBEDDER_TEST_H_
-

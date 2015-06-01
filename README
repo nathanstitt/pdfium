@@ -1,1 +1,12 @@
-For build instructions visit https://code.google.com/p/pdfium/wiki/Build
+This is a mirror + patches of Google's PDFium project
+
+It contains the following changes:
+
+  * Is built as a shared library
+  * Does not depend on V8
+  * Has debian build configuration
+
+An Ubuntu PPA containing compiled version of this repository: 
+https://launchpad.net/~nathan-stitt/+archive/ubuntu/pdfium
+
+The official home for PDFium is located at: https://code.google.com/p/pdfium/wiki/Build

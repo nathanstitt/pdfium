@@ -1,15 +1,27 @@
+pdfium (0.1+git20150601-1) trusty; urgency=low
+
+  * Fix install paths for header files
+
+ -- Nathan Stitt <nathan@stitt.org>  Mon, 01 Jun 2015 14:52:45 +0000
+
+pdfium (0.1+git20150531-2) trusty; urgency=low
+
+  * Fix install paths for shared objects
+
+ -- Nathan Stitt <nathan@stitt.org>  Sun, 31 May 2015 17:34:27 +0000
+
 pdfium (0.1+git20150531-1) trusty; urgency=low
 
   * Convert to build as shared library
   * Remove libv8 dependency
 
- -- Nathan Stitt <nathan@stitt.org>  Tue, 17 Feb 2015 17:34:27 +0000
+ -- Nathan Stitt <nathan@stitt.org>  Sun, 31 May 2015 12:34:27 +0000
 
 pdfium (0.1+git20150217-1) trusty; urgency=low
 
   * Pull latest source from upstream git repo
 
- -- Nathan Stitt <nathan@stitt.org>  Tue, 17 Feb 2015 17:34:27 +0000
+ -- Nathan Stitt <nathan@stitt.org>  Sun, 31 May 2015 12:34:27 +0000
 
 pdfium (0.1+git20150204-3) trusty; urgency=low
 

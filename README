@@ -6,6 +6,9 @@ It contains the following changes:
   * Does not depend on V8
   * Has debian build configuration
 
+Ruby Bindings for the library are available at:
+https://github.com/nathanstitt/pdfium-ruby
+
 An Ubuntu PPA containing compiled version of this repository: 
 https://launchpad.net/~nathan-stitt/+archive/ubuntu/pdfium
 
